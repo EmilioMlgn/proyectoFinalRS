@@ -8,7 +8,26 @@
         <title>{{ config('app.name', 'Laravel') }}</title>
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        {{-- Use Vite when manifest contains compiled assets; otherwise fall back to CDN to avoid errors when Node/Vite build hasn't been run on this machine. --}}
+        @php
+            $manifestPath = public_path('build/manifest.json');
+            $viteManifest = null;
+            if (file_exists($manifestPath)) {
+                try {
+                    $viteManifest = json_decode(file_get_contents($manifestPath), true);
+                } catch (\Exception $e) {
+                    $viteManifest = null;
+                }
+            }
+        @endphp
+
+        @if (is_array($viteManifest) && array_key_exists('resources/css/app.css', $viteManifest))
+            @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @else
+            {{-- Vite build not found or manifest missing the expected entries. Use CDN fallback (Tailwind CDN) and skip app JS. --}}
+            <script src="https://cdn.tailwindcss.com"></script>
+            {{-- If you later install Node and run the Vite build, remove this fallback or it will be ignored when manifest exists. --}}
+        @endif
 
     </head>
     <body class="font-sans antialiased bg-gray-100">

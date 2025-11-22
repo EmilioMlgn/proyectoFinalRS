@@ -28,7 +28,9 @@ class AuthenticatedSessionController extends Controller
 
         session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // After successful authentication, redirect users to the feed page.
+        // Use intended() so if a protected page was requested it still redirects there first.
+        return redirect()->intended(route('feed', absolute: false));
     }
 
     /**
